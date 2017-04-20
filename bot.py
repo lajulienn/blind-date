@@ -93,14 +93,20 @@ with shelve.open(config.users_db) as users:
     @bot.message_handler(commands=['reveal'])
     def reveal(message):
         first = message.chat.id
-        if not is_started(first):
-            bot.send_message(first, 'Start a conversation first.')
-            return
-        if first not in opened_dialogues:
+        if first in waiting_queue:
             bot.send_message(first, 'Your chat has not started yet.')
             return
+        if first not in opened_dialogues:
+            bot.send_message(first, 'Start a conversation first.')
+            return
+
         second = opened_dialogues[first]
         first_username = users[str(first)].username
+
+        if first_username is None:
+            bot.send_message(first, 'Please, set username first.')
+            return
+
         if users[str(second)].revealed:
             second_username = users[str(second)].username
             bot.send_message(first, 'User @' + second_username + ' revealed his username.')
