@@ -64,9 +64,10 @@ with shelve.open(config.users_db) as users:
                          'your partner also sent a reveal command\n')
 
 
-    @bot.message_handler(lambda: True)
+    @bot.message_handler(content_types='text')
     def reply(message):
-        bot.send_message(opened_dialogues[message.chat.id], message.text)
+        if message.chat.id in opened_dialogues:
+            bot.send_message(opened_dialogues[message.chat.id], message.text)
 
 
     bot.polling()
