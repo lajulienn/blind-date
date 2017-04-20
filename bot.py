@@ -10,7 +10,7 @@ waiting_queue = []
 
 with shelve.open(config.users_db) as users:
 
-    def is_opened(user_id):
+    def is_started(user_id):
         return user_id in opened_dialogues \
                or (len(waiting_queue) != 0 and user_id == waiting_queue[0])
 
@@ -20,11 +20,15 @@ with shelve.open(config.users_db) as users:
                                             or closed_dialogues.get(user_id) != waiting_queue[0])
 
 
-    def remove_from_closed(first, second):
-        if first in closed_dialogues:
-            del closed_dialogues[first]
-        if second in closed_dialogues:
-            del closed_dialogues[second]
+    def remove_from_list(first, second, list):
+        if first in list:
+            del list[first]
+        if second in list:
+            del list[second]
+
+    def add_to_list(first, second, list):
+        list[first] = second
+        list[second] = first
 
 
     def add_new_user(user_id, username):
@@ -33,10 +37,10 @@ with shelve.open(config.users_db) as users:
     @bot.message_handler(commands=['start'])
     def start(message):
         user_id = message.chat.id
-        bot.send_message(user_id, 'Finding a partner for you...')
-
-        if is_opened(user_id):
+        if is_started(user_id):
             return
+
+        bot.send_message(user_id, 'Finding a partner for you...')
 
         username = message.from_user.username
         add_new_user(user_id, username)
@@ -46,9 +50,8 @@ with shelve.open(config.users_db) as users:
         else:
             first = user_id
             second = waiting_queue.pop(0)
-            opened_dialogues[first] = second
-            opened_dialogues[second] = first
-            remove_from_closed(first, second)
+            add_to_list(first, second, list=opened_dialogues)
+            remove_from_list(first, second, list=closed_dialogues)
             bot.send_message(first, 'Start talking!')
             bot.send_message(second, 'Start talking!')
 
@@ -64,7 +67,49 @@ with shelve.open(config.users_db) as users:
                          'your partner also sent a reveal command\n')
 
 
-    @bot.message_handler(content_types='text')
+    @bot.message_handler(commands=['leave'])
+    def leave(message):
+        first = message.chat.id
+        if first in waiting_queue:
+            waiting_queue.remove(first)
+        if first not in opened_dialogues:
+            return
+        second = opened_dialogues[first]
+        remove_from_list(first, second, list=opened_dialogues)
+        add_to_list(first, second, list=closed_dialogues)
+        bot.send_message(second, 'Your partner left the chat. :(\n'
+                                 'Send "/start" to open a new conversation.')
+
+
+    @bot.message_handler(commands=['change_room'])
+    def change_room(message):
+        user_id = message.chat.id
+        if user_id in waiting_queue:
+            return
+        leave(message)
+        start(message)
+
+
+    @bot.message_handler(commands=['reveal'])
+    def reveal(message):
+        first = message.chat.id
+        if not is_started(first):
+            bot.send_message(first, 'Start a conversation first.')
+            return
+        if first not in opened_dialogues:
+            bot.send_message(first, 'Your chat has not started yet.')
+            return
+        second = opened_dialogues[first]
+        first_username = users[str(first)].username
+        if users[str(second)].revealed:
+            second_username = users[str(second)].username
+            bot.send_message(first, 'User @' + second_username + ' revealed his username.')
+            bot.send_message(second, 'User @' + first_username + ' revealed his username.')
+        else:
+            users[str(first)] = config.UserProperties(first_username, True)
+
+
+    @bot.message_handler(func=lambda m: True)
     def reply(message):
         if message.chat.id in opened_dialogues:
             bot.send_message(opened_dialogues[message.chat.id], message.text)
