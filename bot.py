@@ -115,10 +115,66 @@ with shelve.open(config.users_db) as users:
             users[str(first)] = config.UserProperties(first_username, True)
 
 
-    @bot.message_handler(func=lambda m: True)
+    @bot.message_handler(content_types=['text'])
     def reply(message):
-        if message.chat.id in opened_dialogues:
-            bot.send_message(opened_dialogues[message.chat.id], message.text)
+        user_id = message.chat.id
+        if user_id in opened_dialogues:
+            bot.send_message(opened_dialogues[user_id], message.text)
 
+
+    @bot.message_handler(content_types=['audio'])
+    def reply(message):
+        user_id = message.chat.id
+        if user_id in opened_dialogues:
+            bot.send_audio(opened_dialogues[user_id], message.audio.file_id)
+
+
+    @bot.message_handler(content_types=['sticker'])
+    def sticker(message):
+        user_id = message.chat.id
+        if user_id in opened_dialogues:
+            bot.send_sticker(opened_dialogues[user_id], message.sticker.file_id)
+
+
+    @bot.message_handler(content_types=['voice'])
+    def sticker(message):
+        user_id = message.chat.id
+        if user_id in opened_dialogues:
+            bot.send_voice(opened_dialogues[user_id], message.voice.file_id)\
+
+
+    @bot.message_handler(content_types=['document'])
+    def sticker(message):
+        user_id = message.chat.id
+        if user_id in opened_dialogues:
+            bot.send_document(opened_dialogues[user_id], message.document.file_id)
+
+
+    @bot.message_handler(content_types=['game'])
+    def sticker(message):
+        user_id = message.chat.id
+        if user_id in opened_dialogues:
+            bot.send_game(opened_dialogues[user_id], message.game)
+
+
+    @bot.message_handler(content_types=['photo'])
+    def sticker(message):
+        user_id = message.chat.id
+        if user_id in opened_dialogues:
+            bot.send_photo(opened_dialogues[user_id], message.photo[len(message.photo)-1].file_id)
+
+
+    @bot.message_handler(content_types=['video'])
+    def sticker(message):
+        user_id = message.chat.id
+        if user_id in opened_dialogues:
+            bot.send_video(opened_dialogues[user_id], message.video.file_id)
+
+
+    @bot.message_handler(content_types=['location'])
+    def sticker(message):
+        user_id = message.chat.id
+        if user_id in opened_dialogues:
+            bot.send_location(opened_dialogues[user_id], message.location)
 
     bot.polling()
