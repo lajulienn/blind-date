@@ -55,7 +55,13 @@ with shelve.open(config.users_db) as users:
 
     @bot.message_handler(commands=['help'])
     def send_help(message):
-        bot.send_message(message.chat.id, 'Help')
+        bot.send_message(message.chat.id,
+                         'Send "/start" to start a conversation.\n'
+                         'Send "/leave" to close a conversation.\n'
+                         'Send "/change_room" to change your partner.\n'
+                         'Send "/reveal" to allow bot to show your username to your partner. '
+                         'It would be shown only provided that '
+                         'your partner also sent a reveal command\n')
 
 
     @bot.message_handler(lambda: True)
@@ -64,4 +70,3 @@ with shelve.open(config.users_db) as users:
 
 
     bot.polling()
-
