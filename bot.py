@@ -175,6 +175,6 @@ with shelve.open(config.users_db) as users:
     def sticker(message):
         user_id = message.chat.id
         if user_id in opened_dialogues:
-            bot.send_location(opened_dialogues[user_id], message.location)
+            bot.send_location(opened_dialogues[user_id], message.location.latitude, message.location.longitude)
 
     bot.polling()
