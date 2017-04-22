@@ -30,7 +30,6 @@ with shelve.open(config.users_db) as users:
         list[first] = second
         list[second] = first
 
-
     def add_new_user(user_id, username):
         users[str(user_id)] = config.UserProperties(username, False)
 
@@ -140,7 +139,7 @@ with shelve.open(config.users_db) as users:
     def sticker(message):
         user_id = message.chat.id
         if user_id in opened_dialogues:
-            bot.send_voice(opened_dialogues[user_id], message.voice.file_id)\
+            bot.send_voice(opened_dialogues[user_id], message.voice.file_id)
 
 
     @bot.message_handler(content_types=['document'])
@@ -150,11 +149,21 @@ with shelve.open(config.users_db) as users:
             bot.send_document(opened_dialogues[user_id], message.document.file_id)
 
 
-    @bot.message_handler(content_types=['game'])
+    @bot.message_handler(content_types=['callback_query'])
     def sticker(message):
         user_id = message.chat.id
+        game_short_name = message.callback_query.game_short_name
         if user_id in opened_dialogues:
-            bot.send_game(opened_dialogues[user_id], message.game)
+            bot.send_game(opened_dialogues[user_id], game_short_name)
+
+
+    @bot.message_handler(content_types=['game'])  # FIX ME
+    def sticker(message):
+        user_id = message.chat.id
+        game_name = message.game.text
+        print(game_name)
+        #if user_id in opened_dialogues:
+        bot.send_game(user_id, message.game.title)
 
 
     @bot.message_handler(content_types=['photo'])
