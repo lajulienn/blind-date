@@ -167,11 +167,18 @@ with shelve.open(config.users_db) as users:
         user_id = message.chat.id
         if user_id in opened_dialogues:
             partner = opened_dialogues[user_id]
-            if message.forward_from is not None and message.forward_from != user_id:
+            if message.forward_from is not None:
+                if message.forward_from.id == user_id:
+                    bot.send_message(
+                        user_id,
+                        'BotInfo: Your forwarded message was not sent,'
+                        ' because it was yours!')
+                    return
                 bot.forward_message(partner, user_id, message.message_id)
-                logging.debug('Forwarded a text message from {} to {}, message id {}'
-                              .format(user_id, partner, message.message_id))
-                return
+                logging.debug('Forwarded a text message from {} to {},'
+                              ' message id {}, forward from {}'
+                              .format(user_id, partner, message.message_id,
+                                      message.forward_from))
             elif message.reply_to_message is not None:
                 message_to_forward = message.reply_to_message.message_id
                 if message.reply_to_message.from_user.id != user_id:
