@@ -5,7 +5,7 @@ import logging
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s',
                     level=logging.DEBUG,
-                    filename=u'mylog.log')
+                    filename=u'bot.log')
 
 bot = telebot.TeleBot(config.token)
 
