@@ -4,7 +4,7 @@ import telebot
 import logging
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s',
-                    level=logging.INFO,
+                    level=logging.DEBUG,
                     filename=u'mylog.log')
 
 bot = telebot.TeleBot(config.token)
@@ -38,6 +38,7 @@ with shelve.open(config.users_db) as users:
 
     def add_new_user(user_id, username):
         users[str(user_id)] = config.UserProperties(username, False)
+
 
     @bot.message_handler(commands=['start'])
     def start(message):
@@ -166,22 +167,51 @@ with shelve.open(config.users_db) as users:
         user_id = message.chat.id
         if user_id in opened_dialogues:
             partner = opened_dialogues[user_id]
-            bot.send_message(partner,
-                             message.text)
+            if message.forward_from is not None and message.forward_from != user_id:
+                bot.forward_message(partner, user_id, message.message_id)
+                logging.debug('Forwarded a text message from {} to {}, message id {}'
+                              .format(user_id, partner, message.message_id))
+                return
+            elif message.reply_to_message is not None:
+                message_to_forward = message.reply_to_message.message_id
+                if message.reply_to_message.from_user.id != user_id:
+                    bot.forward_message(partner, user_id, message_to_forward)
+                else:
+                    bot.send_message(
+                        user_id,
+                        'BotInfo: Your forwarded message was not sent,'
+                        ' because it was yours!')
+                bot.send_message(partner, message.text)
+                logging.debug('Send a text reply to a message from {} to {}, message id {}'
+                              .format(user_id, partner, message_to_forward))
+            else:
+                bot.send_message(partner, message.text)
             logging.debug('Send a text message from {} to {}'
                           .format(user_id, partner))
 
 
     @bot.message_handler(content_types=['audio'])
     def reply(message):
-        logging.debug('Audio message was received from user {}'
+        logging.debug('Audio was received from user {}'
                       .format(message.chat.id))
         user_id = message.chat.id
         if user_id in opened_dialogues:
             partner = opened_dialogues[user_id]
-            bot.send_audio(partner,
-                           message.audio.file_id)
-            logging.debug('Send an audio message from {} to {}'
+            if message.reply_to_message is not None:
+                message_to_forward = message.reply_to_message.message_id
+                if message.reply_to_message.from_user.id != user_id:
+                    bot.forward_message(partner, user_id, message_to_forward)
+                else:
+                    bot.send_message(
+                        user_id,
+                        'BotInfo: Your forwarded message was not sent,'
+                        ' because it was yours!')
+                bot.send_audio(partner, message.audio.file_id)
+                logging.debug('Send an audio reply to a message from {} to {}, message id {}'
+                              .format(user_id, partner, message_to_forward))
+            else:
+                bot.send_audio(partner, message.audio.file_id)
+            logging.debug('Send an audio from {} to {}'
                           .format(user_id, partner))
 
 
@@ -192,8 +222,21 @@ with shelve.open(config.users_db) as users:
         user_id = message.chat.id
         if user_id in opened_dialogues:
             partner = opened_dialogues[user_id]
-            bot.send_sticker(partner,
-                             message.sticker.file_id)
+            if message.reply_to_message is not None:
+                message_to_forward = message.reply_to_message.message_id
+                if message.reply_to_message.from_user.id != user_id:
+                    bot.forward_message(partner, user_id, message_to_forward)
+                else:
+                    bot.send_message(
+                        user_id,
+                        'BotInfo: Your forwarded message was not sent,'
+                        ' because it was yours!')
+                bot.send_sticker(partner, message.sticker.file_id)
+                logging.debug('Send a sticker reply to a message from {} to {}, message id {}'
+                              .format(user_id, partner, message_to_forward))
+            else:
+                bot.send_sticker(partner,
+                                 message.sticker.file_id)
             logging.debug('Send a sticker from {} to {}'
                           .format(user_id, partner))
 
@@ -205,8 +248,21 @@ with shelve.open(config.users_db) as users:
         user_id = message.chat.id
         if user_id in opened_dialogues:
             partner = opened_dialogues[user_id]
-            bot.send_voice(partner,
-                           message.voice.file_id)
+            if message.reply_to_message is not None:
+                message_to_forward = message.reply_to_message.message_id
+                if message.reply_to_message.from_user.id != user_id:
+                    bot.forward_message(partner, user_id, message_to_forward)
+                else:
+                    bot.send_message(
+                        user_id,
+                        'BotInfo: Your forwarded message was not sent,'
+                        ' because it was yours!')
+                bot.send_voice(partner, message.voice.file_id)
+                logging.debug('Send a voice reply to a message from {} to {}, message id {}'
+                              .format(user_id, partner, message_to_forward))
+            else:
+                bot.send_voice(partner,
+                               message.voice.file_id)
             logging.debug('Send a voice from {} to {}'
                           .format(user_id, partner))
 
@@ -218,8 +274,21 @@ with shelve.open(config.users_db) as users:
         user_id = message.chat.id
         if user_id in opened_dialogues:
             partner = opened_dialogues[user_id]
-            bot.send_document(partner,
-                              message.document.file_id)
+            if message.reply_to_message is not None:
+                message_to_forward = message.reply_to_message.message_id
+                if message.reply_to_message.from_user.id != user_id:
+                    bot.forward_message(partner, user_id, message_to_forward)
+                else:
+                    bot.send_message(
+                        user_id,
+                        'BotInfo: Your forwarded message was not sent,'
+                        ' because it was yours!')
+                bot.send_document(partner, message.document.file_id)
+                logging.debug('Send a document reply to a message from {} to {}, message id {}'
+                              .format(user_id, partner, message_to_forward))
+            else:
+                bot.send_document(partner,
+                                  message.document.file_id)
             logging.debug('Send a document from {} to {}'
                           .format(user_id, partner))
 
@@ -231,8 +300,21 @@ with shelve.open(config.users_db) as users:
         user_id = message.chat.id
         if user_id in opened_dialogues:
             partner = opened_dialogues[user_id]
-            bot.send_photo(partner,
-                           message.photo[len(message.photo)-1].file_id)
+            if message.reply_to_message is not None:
+                message_to_forward = message.reply_to_message.message_id
+                if message.reply_to_message.from_user.id != user_id:
+                    bot.forward_message(partner, user_id, message_to_forward)
+                else:
+                    bot.send_message(
+                        user_id,
+                        'BotInfo: Your forwarded message was not sent,'
+                        ' because it was yours!')
+                bot.send_photo(partner, message.photo[len(message.photo)-1].file_id)
+                logging.debug('Send a photo reply to a message from {} to {}, message id {}'
+                              .format(user_id, partner, message_to_forward))
+            else:
+                bot.send_photo(partner,
+                               message.photo[len(message.photo)-1].file_id)
             logging.debug('Send a photo from {} to {}'
                           .format(user_id, partner))
 
@@ -244,8 +326,21 @@ with shelve.open(config.users_db) as users:
         user_id = message.chat.id
         if user_id in opened_dialogues:
             partner = opened_dialogues[user_id]
-            bot.send_video(partner,
-                           message.video.file_id)
+            if message.reply_to_message is not None:
+                message_to_forward = message.reply_to_message.message_id
+                if message.reply_to_message.from_user.id != user_id:
+                    bot.forward_message(partner, user_id, message_to_forward)
+                else:
+                    bot.send_message(
+                        user_id,
+                        'BotInfo: Your forwarded message was not sent,'
+                        ' because it was yours!')
+                bot.send_video(partner, message.video.file_id)
+                logging.debug('Send a video reply to a message from {} to {}, message id {}'
+                              .format(user_id, partner, message_to_forward))
+            else:
+                bot.send_video(partner,
+                               message.video.file_id)
             logging.debug('Send a video from {} to {}'
                           .format(user_id, partner))
 
@@ -257,9 +352,24 @@ with shelve.open(config.users_db) as users:
         user_id = message.chat.id
         if user_id in opened_dialogues:
             partner = opened_dialogues[user_id]
-            bot.send_location(partner,
-                              message.location.latitude,
-                              message.location.longitude)
+            if message.reply_to_message is not None:
+                message_to_forward = message.reply_to_message.message_id
+                if message.reply_to_message.from_user.id != user_id:
+                    bot.forward_message(partner, user_id, message_to_forward)
+                else:
+                    bot.send_message(
+                        user_id,
+                        'BotInfo: Your forwarded message was not sent,'
+                        ' because it was yours!')
+                bot.send_location(partner,
+                                  message.location.latitude,
+                                  message.location.longitude)
+                logging.debug('Send a location reply to a message from {} to {}, message id {}'
+                              .format(user_id, partner, message_to_forward))
+            else:
+                bot.send_location(partner,
+                                  message.location.latitude,
+                                  message.location.longitude)
             logging.debug('Send a location from {} to {}'
                           .format(user_id, partner))
 
