@@ -110,6 +110,11 @@ with shelve.open(config.users_db) as users:
         logging.debug('/change_room command was received from user {}'
                       .format(message.chat.id))
         user_id = message.chat.id
+        if user_id not in opened_dialogues:
+            logging.warning('User {} was not in the opened dialogues'
+                            .format(user_id))
+            bot.send_message(user_id, 'You have no opened dialogues.'
+                                      ' Send "/start" to open new one.')
         if user_id in waiting_queue:
             logging.error('User {} can not change room, '
                           'he is only in the waiting queue'
