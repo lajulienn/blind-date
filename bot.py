@@ -4,7 +4,7 @@ import telebot
 import logging
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s',
-                    level=logging.DEBUG,
+                    level=logging.INFO,
                     filename=u'mylog.log')
 
 bot = telebot.TeleBot(config.token)
@@ -41,11 +41,11 @@ with shelve.open(config.users_db) as users:
 
     @bot.message_handler(commands=['start'])
     def start(message):
-        logging.debug('\start command was received from user {}'
+        logging.debug('/start command was received from user {}'
                       .format(message.chat.id))
         user_id = message.chat.id
         if is_started(user_id):
-            logging.warning('\start command was received for the second time')
+            logging.warning('/start command was received for the second time')
             return
 
         bot.send_message(user_id, 'Finding a partner for you...')
@@ -70,7 +70,7 @@ with shelve.open(config.users_db) as users:
 
     @bot.message_handler(commands=['help'])
     def send_help(message):
-        logging.debug('\help command was received from user {}'
+        logging.debug('/help command was received from user {}'
                       .format(message.chat.id))
         bot.send_message(
             message.chat.id,
@@ -84,7 +84,7 @@ with shelve.open(config.users_db) as users:
 
     @bot.message_handler(commands=['leave'])
     def leave(message):
-        logging.debug('\leave command was received from user {}'
+        logging.debug('/leave command was received from user {}'
                       .format(message.chat.id))
         first = message.chat.id
         if first in waiting_queue:
@@ -106,7 +106,7 @@ with shelve.open(config.users_db) as users:
 
     @bot.message_handler(commands=['change_room'])
     def change_room(message):
-        logging.debug('\change_room command was received from user {}'
+        logging.debug('/change_room command was received from user {}'
                       .format(message.chat.id))
         user_id = message.chat.id
         if user_id in waiting_queue:
@@ -121,7 +121,7 @@ with shelve.open(config.users_db) as users:
 
     @bot.message_handler(commands=['reveal'])
     def reveal(message):
-        logging.debug(u'\reveal command was received from user {}'
+        logging.debug(u'/reveal command was received from user {}'
                       .format(message.chat.id))
         first = message.chat.id
         if first in waiting_queue:
