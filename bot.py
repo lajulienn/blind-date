@@ -1,7 +1,7 @@
 import config
+import logging
 import shelve
 import telebot
-import logging
 
 logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s',
                     level=logging.DEBUG,
@@ -26,15 +26,15 @@ with shelve.open(config.users_db) as users:
                     or closed_dialogues.get(user_id) != waiting_queue[0])
 
 
-    def remove_from_list(first, second, list):
-        if first in list:
-            del list[first]
-        if second in list:
-            del list[second]
+    def remove_from_dialogue(first, second, dialogues):
+        if first in dialogues:
+            del dialogues[first]
+        if second in dialogues:
+            del dialogues[second]
 
-    def add_to_list(first, second, list):
-        list[first] = second
-        list[second] = first
+    def add_to_dialogue(first, second, dialogues):
+        dialogues[first] = second
+        dialogues[second] = first
 
     def add_new_user(user_id, username):
         users[str(user_id)] = config.UserProperties(username, False)
@@ -61,8 +61,8 @@ with shelve.open(config.users_db) as users:
         else:
             first = user_id
             second = waiting_queue.pop(0)
-            add_to_list(first, second, list=opened_dialogues)
-            remove_from_list(first, second, list=closed_dialogues)
+            add_to_dialogue(first, second, dialogues=opened_dialogues)
+            remove_from_dialogue(first, second, dialogues=closed_dialogues)
             bot.send_message(first, 'Start talking!')
             bot.send_message(second, 'Start talking!')
             logging.debug('Conversation started between users: {} and {}'
@@ -97,8 +97,8 @@ with shelve.open(config.users_db) as users:
                             .format(message.chat.id))
             return
         second = opened_dialogues[first]
-        remove_from_list(first, second, list=opened_dialogues)
-        add_to_list(first, second, list=closed_dialogues)
+        remove_from_dialogue(first, second, dialogues=opened_dialogues)
+        add_to_dialogue(first, second, dialogues=closed_dialogues)
         bot.send_message(second, 'Your partner left the chat. :(\n'
                                  'Send "/start" to open a new conversation.')
         logging.debug('Closed dialogue between users: {} and {}'
